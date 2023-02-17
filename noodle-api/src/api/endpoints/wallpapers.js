@@ -39,12 +39,18 @@ class Wallpapers {
     // select all system wallpapers and wallpapers uploaded by the user,
     // join to the image data to get thumbnails and dominant colors
     const wallpapers = await shared.db.wallpapers.getWallpapersForActor(req.actor.id);
-    return api.http.succeed(req, res, { wallpapers });
+    const newWallpapers = wallpapers.map(wallpaper => {
+      const sanitizedUrl = wallpaper.url.split('undefined')[1]
+      const newUrl = 'http://localhost:8889' + sanitizedUrl
+
+      return wallpaper.url.includes('undefined') ? { ...wallpaper, url: newUrl } : wallpaper
+    })
+    return api.http.succeed(req, res, { wallpapers: newWallpapers });
   }
   handleGet = async (req, res) => {
     const id = req.params.id
     const name = req.params.name
-    const filePath = path.join(process.env.WALLPAPERS_DIRECTORY, id, name)
+    const filePath = path.resolve(__dirname, '..', '..', '..', process.env.WALLPAPERS_DIRECTORY || 'wallpapers', id, name)
     res.sendFile(filePath)
   }
 }
